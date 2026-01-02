@@ -1,3 +1,3 @@
-PRINT "hello, world!"
-PRINT "second line"
-PRINT "and a third..."
+print("hello, world!")
+print("second line")
+print("and a third...")

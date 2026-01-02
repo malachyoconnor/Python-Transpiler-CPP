@@ -57,14 +57,11 @@ static bool IsWhitespace(char ch) {
 }
 
 bool Lexer::StartOfNewLine() {
+   if (currentPos_ == 0) return true;
+   if (currentPos_ >= source_.length() || currentPos_ < 0) return false;
    if (GetCurrentChar() == '\n') return false; // This is counted as the 'end' of the previous line
-   for (int i = currentPos_; i >= 0; --i) {
-      if (source_[i] == '\n') return true;
-      if (IsWhitespace(source_[i])) continue;
-      return false;
-   }
 
-   return false;
+   return source_[currentPos_ - 1] == '\n';
 }
 
 void Lexer::SkipWhiteSpace() {
@@ -105,7 +102,8 @@ bool IsAlpha(char ch) {
 }
 
 Token Lexer::GetToken() {
-   if (StartOfNewLine()) {
+   // If this is an empty line, who cares about the indentation.
+   if (StartOfNewLine() && Peek() != '\n') {
       int whitespaceCounted = CountAndConsumeTabs();
 
       if (whitespaceCounted != currentIndentation_) {
@@ -146,6 +144,7 @@ Token Lexer::GetToken() {
       case '=': {
          if (Peek() == '=') {
             result = Token("==", EQEQ);
+            NextChar();
          } else {
             result = Token("=", EQ);
          }

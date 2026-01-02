@@ -7,7 +7,7 @@
 #include "Parser.h"
 
 int main() {
-   std::ifstream fileStream {"../exampleScripts/python_fib.txt"};
+   std::ifstream fileStream {"../exampleScripts/print.txt"};
 
    if (!fileStream.is_open()) {
       std::printf("ERROR: Could not open file!");
@@ -23,15 +23,15 @@ int main() {
 
    Lexer lexer {sourceString};
 
-   for (auto token = lexer.GetToken(); token.GetType() != END_OF_FILE; token = lexer.GetToken()) {
-      printf("%s(%s)\n", str(token.GetType()).c_str(), token.GetText().c_str());
-   }
+    // for (auto token = lexer.GetToken(); token.GetType() != END_OF_FILE; token = lexer.GetToken()) {
+    //    printf("%s(%s)\n", str(token.GetType()).c_str(), token.GetText().c_str());
+    // }
 
-   // Emitter emitter {"../out.c"};
-   // Parser parser {lexer, emitter};
+   Emitter emitter {"../out.c"};
+   Parser parser {lexer, emitter};
 
-   // parser.ParseProgram();
-   // emitter.WriteFile();
+   parser.ParseProgram();
+   emitter.WriteFile();
 
    printf("Parsing completed!\n");
 }

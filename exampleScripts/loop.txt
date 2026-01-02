@@ -1,3 +1,6 @@
-LABEL loop
-PRINT "hello, world!"
-GOTO loop
+test = 5
+i = 0
+
+while i < test:
+   print(i)
+   i = i + 1

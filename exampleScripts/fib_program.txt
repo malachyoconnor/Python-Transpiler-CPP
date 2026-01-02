@@ -1,12 +1,11 @@
-PRINT "How many fibonacci numbers do you want?"
-INPUT nums
+print("How many fibonacci numbers do you want?")
+nums = input()
 
-LET a = 0
-LET b = 1
-WHILE nums > 0 REPEAT
-    PRINT a
-    LET c = a + b
-    LET a = b
-    LET b = c
-    LET nums = nums - 1
-ENDWHILE
+a = 0
+b = 1
+while nums > 0:
+   print(a)
+   c = a + b
+   a = b
+   b = c
+   nums = nums - 1

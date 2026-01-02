@@ -13,13 +13,11 @@ class Emitter;
 
 /*   GRAMMAR:
      program ::= {statement}
-     statement ::= "PRINT" (expression | string) nl
-         | "IF" comparison "THEN" nl {statement} "ENDIF" nl
-         | "WHILE" comparison "REPEAT" nl {statement} "ENDWHILE" nl
-         | "LABEL" ident nl
-         | "GOTO" ident nl
-         | "LET" ident "=" expression nl
-         | "INPUT" ident nl
+     statement ::= "print" OPEN_PAREN (expression | string) CLOSE_PAREN nl
+         | "if" comparison COLON nl ADD_INDENT {statement | nl} REMOVE_INDENT
+         | "while" comparison COLON nl ADD_INDENT {statement} {nl} REMOVE_INDENT
+         | IDENT "=" (expression | input()) nl
+         | "INPUT" OPEN_PAREN ident CLOSE_PARENT nl
      comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
      expression ::= term {( "-" | "+" ) term}
      term ::= unary {( "/" | "*" ) unary}
@@ -72,10 +70,7 @@ private:
    void PrintStatement();
    void IfStatement();
    void WhileStatement();
-   void LabelStatement();
-   void GotoStatement();
-   void LetStatement();
-   void InputStatement();
+   void ReassignmentStatement();
    void Comparison();
    void Expression();
    void Term();

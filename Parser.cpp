@@ -58,7 +58,7 @@ void Parser::Abort(const std::string &message) {
 }
 
 void Parser::Statement() {
-   if (!CheckTokenInList({PRINT, IF, WHILE, LABEL, GOTO, LET,INPUT}))
+   if (!CheckTokenInList({PRINT, IF, WHILE, IDENT, INPUT}))
       Abort(std::format("Expected a statement keyword, but found: {} ({})",
          GetCurrentToken().GetText(), str(GetCurrentToken().GetType())));
 
@@ -66,26 +66,25 @@ void Parser::Statement() {
       case PRINT:  PrintStatement(); break;
       case IF:     IfStatement(); break;
       case WHILE:  WhileStatement(); break;
-      case LABEL:  LabelStatement(); break;
-      case GOTO:   GotoStatement(); break;
-      case LET:    LetStatement(); break;
-      case INPUT:  InputStatement(); break;
+      case IDENT:  ReassignmentStatement(); break;
       default: std::unreachable();
    }
 }
 
 void Parser::PrintStatement() {
    ConsumeOrAbort(PRINT);
+   ConsumeOrAbort(OPEN_PAREN);
    emitter_.Emit("printf(");
 
    if (CheckToken(STRING)) {
-      emitter_.Emit(std::format("\"{}\"", GetCurrentToken().GetText()));
+      emitter_.Emit(std::format("\"{}\\n\"", GetCurrentToken().GetText()));
       NextToken();
    } else {
       emitter_.Emit(R"("%.2f\n", )");
       Expression();
    }
 
+   ConsumeOrAbort(CLOSE_PAREN);
    emitter_.Emit(");");
    NewLine();
 }
@@ -94,19 +93,27 @@ void Parser::IfStatement() {
    ConsumeOrAbort(IF);
    emitter_.Emit("if (");
    Comparison();
-   emitter_.Emit(")");
-   ConsumeOrAbort(THEN);
+   emitter_.Emit(") ");
    emitter_.Emit("{");
-   emitter_.IncrementTabDepth();
-   NewLine();
-   //  Possible statement
-   while (!CheckToken(ENDIF))
-      Statement();
 
-   ConsumeOrAbort(ENDIF);
-   emitter_.DecrementTabDepth();
-   emitter_.Emit("}");
+   ConsumeOrAbort(COLON);
    NewLine();
+   ConsumeOrAbort(ADD_INDENT);
+
+   emitter_.IncrementTabDepth();
+   //  Possible statement
+   while (!CheckToken(REMOVE_INDENT)) {
+      while (CheckToken(NEWLINE)) {
+         ConsumeOrAbort(NEWLINE);
+      }
+      if (CheckToken(REMOVE_INDENT)) break;
+
+      Statement();
+   }
+
+   ConsumeOrAbort(REMOVE_INDENT);
+   emitter_.DecrementTabDepth();
+   emitter_.Emit("}\n");
 }
 
 void Parser::WhileStatement() {
@@ -114,71 +121,59 @@ void Parser::WhileStatement() {
    emitter_.Emit("while (");
    Comparison();
    emitter_.Emit(") ");
-   ConsumeOrAbort(REPEAT);
    emitter_.Emit("{");
-   emitter_.IncrementTabDepth();
+
+   ConsumeOrAbort(COLON);
    NewLine();
+   ConsumeOrAbort(ADD_INDENT);
+
+   emitter_.IncrementTabDepth();
 
    //  Possible statement
-   while (!CheckToken(ENDWHILE))
+   while (!CheckToken(REMOVE_INDENT)) {
+      while (CheckToken(NEWLINE)) {
+         ConsumeOrAbort(NEWLINE);
+      }
+      if (CheckToken(REMOVE_INDENT)) break;
+
       Statement();
+   }
 
-   ConsumeOrAbort(ENDWHILE);
+   ConsumeOrAbort(REMOVE_INDENT);
    emitter_.DecrementTabDepth();
-   emitter_.Emit("}");
-   NewLine();
+   emitter_.Emit("}\n");
 }
 
-void Parser::LabelStatement() {
-   ConsumeOrAbort(LABEL);
-
-   labelsDeclared_.insert(GetCurrentToken().GetText());
-   emitter_.Emit(GetCurrentToken().GetText());
+void Parser::ReassignmentStatement() {
+   std::string variableName = GetCurrentToken().GetText();
 
    ConsumeOrAbort(IDENT);
-   NewLine();
-}
-
-void Parser::GotoStatement() {
-   ConsumeOrAbort(GOTO);
-   emitter_.Emit("goto ");
-
-   labelsGotoed_.insert(GetCurrentToken().GetText());
-   emitter_.Emit(GetCurrentToken().GetText());
-
-   ConsumeOrAbort(IDENT);
-   NewLine();
-}
-
-void Parser::LetStatement() {
-   ConsumeOrAbort(LET);
-   if (!symbols_.contains(GetCurrentToken().GetText())) {
-      emitter_.Emit("float ");
-   }
-
-   symbols_.insert(GetCurrentToken().GetText());
-   emitter_.Emit(GetCurrentToken().GetText());
-   ConsumeOrAbort(IDENT);
-
    ConsumeOrAbort(EQ);
-   emitter_.Emit(" = ");
-   Expression();
-   emitter_.Emit(";");
-   NewLine();
-}
 
-void Parser::InputStatement() {
-   ConsumeOrAbort(INPUT);
+   if (CheckToken(INPUT)) {
+      if (!symbols_.contains(variableName)) {
+         emitter_.Emit(std::format("float {};\n", variableName));
+         symbols_.insert(variableName);
+      }
 
-   // If not declared, then declare it.
-   if (!symbols_.contains(GetCurrentToken().GetText())) {
-      emitter_.Emit(std::format("float {};\n", GetCurrentToken().GetText()));
+      ConsumeOrAbort(INPUT);
+      ConsumeOrAbort(OPEN_PAREN);
+
+      emitter_.Emit("scanf(\"%f\", ");
+      emitter_.Emit(std::format("&{});", variableName));
+
+      ConsumeOrAbort(CLOSE_PAREN);
+   } else {
+      if (!symbols_.contains(variableName)) {
+         emitter_.Emit(std::format("float ", variableName));
+         symbols_.insert(variableName);
+      }
+
+      emitter_.Emit(std::format("{} = ", variableName));
+      Expression();
    }
-   emitter_.Emit("scanf(\"%f\", ");
+   emitter_.Emit(";");
 
-   symbols_.insert(GetCurrentToken().GetText());
-   emitter_.Emit(std::format("&{});", GetCurrentToken().GetText()));
-   ConsumeOrAbort(IDENT);
    NewLine();
 }
 
