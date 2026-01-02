@@ -21,16 +21,19 @@ public:
    bool Finished();
 
 private:
+   int currentPos_;
+   int currentIndentation_;
+   const std::string source_;
+
    // Invalid token found, print error message and exit.
    void Abort(std::string msg);
-   void SkipWhitespace();
+   bool StartOfNewLine();
+   void SkipWhiteSpace();
+   int CountAndConsumeTabs();
    void SkipComment();
 
    [[nodiscard]]
    char GetCurrentChar() const;
-
-   int currentPos_;
-   const std::string source_;
 };
 
 

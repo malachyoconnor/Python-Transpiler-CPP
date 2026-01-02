@@ -5,20 +5,13 @@
 #include <utility>
 
 const Trie KEYWORD_TRIE = Trie({
-   str(LABEL),
-   str(GOTO),
    str(PRINT),
    str(INPUT),
-   str(LET),
    str(IF),
-   str(THEN),
-   str(ENDIF),
    str(WHILE),
-   str(REPEAT),
-   str(ENDWHILE)
 });
 
-Lexer::Lexer(std::string source) : currentPos_(-1), source_(std::move(source)) {
+Lexer::Lexer(std::string source) : currentPos_(-1), currentIndentation_(0), source_(std::move(source)) {
    NextChar();
 }
 
@@ -56,13 +49,43 @@ char Lexer::Peek() const {
 }
 
 void Lexer::Abort(std::string msg) {
-   std::printf("ERROR: %s", msg.c_str());
+   std::printf("ERROR: %s\n", msg.c_str());
 }
 
-void Lexer::SkipWhitespace() {
-   while (GetCurrentChar() == ' ' || GetCurrentChar() == '\t' || GetCurrentChar() == '\r') {
+static bool IsWhitespace(char ch) {
+   return ch == '\r' || ch  == ' ' || ch == '\t';
+}
+
+bool Lexer::StartOfNewLine() {
+   if (GetCurrentChar() == '\n') return false; // This is counted as the 'end' of the previous line
+   for (int i = currentPos_; i >= 0; --i) {
+      if (source_[i] == '\n') return true;
+      if (IsWhitespace(source_[i])) continue;
+      return false;
+   }
+
+   return false;
+}
+
+void Lexer::SkipWhiteSpace() {
+   while (IsWhitespace(GetCurrentChar())) {
       NextChar();
    }
+}
+
+int Lexer::CountAndConsumeTabs() {
+   int count = 0;
+   while (GetCurrentChar() == ' ' || GetCurrentChar() == '\t' || GetCurrentChar() == '\r') {
+      if (GetCurrentChar() == '\t') count += 3;
+      else if (GetCurrentChar() == ' ') count += 1;
+      NextChar();
+   }
+
+   if (count%3 != 0) {
+      Abort("Whitespace error! Not divisible by 3.");
+   }
+
+   return count;
 }
 
 void Lexer::SkipComment() {
@@ -82,17 +105,36 @@ bool IsAlpha(char ch) {
 }
 
 Token Lexer::GetToken() {
-   SkipWhitespace();
+   if (StartOfNewLine()) {
+      int whitespaceCounted = CountAndConsumeTabs();
+
+      if (whitespaceCounted != currentIndentation_) {
+         if (whitespaceCounted == currentIndentation_ + 3) {
+            currentIndentation_ += 3;
+            return Token("   ", ADD_INDENT);
+         }
+         if (whitespaceCounted == currentIndentation_ - 3) {
+            currentIndentation_ -= 3;
+            return Token("   ", REMOVE_INDENT);
+         }
+         Abort("Whitespace increased or decreased by 2 tabs at once!");
+      }
+   } else {
+      SkipWhiteSpace();
+   }
+
    SkipComment();
 
    std::optional<Token> result;
    switch (GetCurrentChar()) {
-      case '\0': result = Token("\0", END_OF_FILE); break;
-      case '\n': result = Token("\\n", NEWLINE);     break;
-      case '+': result = Token("+", PLUS);          break;
-      case '-': result = Token("-", MINUS);         break;
-      case '*': result = Token("*", ASTERISK);      break;
-      case '/': result = Token("/", SLASH);         break;
+      case '\n': result = Token("\\n", NEWLINE);    break;
+      case '+':  result = Token("+", PLUS);         break;
+      case '-':  result = Token("-", MINUS);        break;
+      case '*':  result = Token("*", ASTERISK);     break;
+      case '/':  result = Token("/", SLASH);        break;
+      case '(':  result = Token("(", OPEN_PAREN);   break;
+      case ')':  result = Token("(", CLOSE_PAREN);  break;
+      case ':':  result = Token(":", COLON);        break;
       case '!': {
          if (Peek() == '=') {
             result = Token("!=", NOTEQ);
@@ -130,6 +172,16 @@ Token Lexer::GetToken() {
          int startIndex = currentPos_;
          while (GetCurrentChar() != '"' && GetCurrentChar() != '\0' ) NextChar();
          result = Token(source_.substr(startIndex, currentPos_ - startIndex), STRING);
+         break;
+      }
+      case '\0': {
+         // Stay on the \0 character until we've emitted enough END_BLOCK tokens
+         while (currentIndentation_ > 0) {
+            currentIndentation_ -= 3;
+            return Token("-   ", REMOVE_INDENT);
+         }
+         result = Token("\0", END_OF_FILE);
+         break;
       }
       default: {
          if (IsDigit(GetCurrentChar())) {
@@ -142,7 +194,7 @@ Token Lexer::GetToken() {
 
             return Token(source_.substr(startIndex, currentPos_ - startIndex), NUMBER);
          }
-         if (IsAlpha(GetCurrentChar())) {
+         else if (IsAlpha(GetCurrentChar())) {
             int startIndex = currentPos_;
             NextChar();
             while (IsAlpha(GetCurrentChar()) && KEYWORD_TRIE.StartsWith(source_.substr(startIndex, currentPos_ - startIndex))) {
@@ -151,17 +203,10 @@ Token Lexer::GetToken() {
 
             if (KEYWORD_TRIE.Contains(source_.substr(startIndex, currentPos_ - startIndex))) {
                std::string keyword = source_.substr(startIndex, currentPos_ - startIndex);
-               if (keyword == str(LABEL))    return Token("LABEL", LABEL);
-               if (keyword == str(GOTO))     return Token("GOTO", GOTO);
                if (keyword == str(PRINT))    return Token("PRINT", PRINT);
                if (keyword == str(INPUT))    return Token("INPUT", INPUT);
-               if (keyword == str(LET))      return Token("LET", LET);
                if (keyword == str(IF))       return Token("IF", IF);
-               if (keyword == str(THEN))     return Token("THEN", THEN);
-               if (keyword == str(ENDIF))    return Token("ENDIF", ENDIF);
                if (keyword == str(WHILE))    return Token("WHILE", WHILE);
-               if (keyword == str(REPEAT))   return Token("REPEAT", REPEAT);
-               if (keyword == str(ENDWHILE)) return Token("ENDWHILE", ENDWHILE);
                Abort(std::format("Unknown keyword: {}", keyword));
             }
 
@@ -170,6 +215,8 @@ Token Lexer::GetToken() {
             }
 
             return Token(source_.substr(startIndex, currentPos_ - startIndex), IDENT);
+         } else {
+            Abort(std::format("Expected alphanumeric character, but found: '{}'", GetCurrentChar()));
          }
       }
    }

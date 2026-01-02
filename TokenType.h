@@ -9,17 +9,12 @@ enum TokenType {
    IDENT,
    STRING,
    // Keywords
-   LABEL,
-   GOTO,
    PRINT,
    INPUT,
-   LET,
    IF,
-   THEN,
-   ENDIF,
    WHILE,
-   REPEAT,
-   ENDWHILE,
+   ADD_INDENT,
+   REMOVE_INDENT,
    // Operators.
    EQ,
    PLUS,
@@ -32,40 +27,40 @@ enum TokenType {
    LTEQ,
    GT,
    GTEQ,
+   OPEN_PAREN,
+   CLOSE_PAREN,
+   COLON,
 };
 
 inline std::string str(const TokenType tokenType) {
    switch (tokenType) {
-      case END_OF_FILE: return "END_OF_FILE";
-      case NEWLINE: return "NEWLINE";
-      case NUMBER: return "NUMBER";
-      case IDENT: return "IDENT";
-      case STRING: return "STRING";
-      case LABEL: return "LABEL";
-      case GOTO: return "GOTO";
-      case PRINT: return "PRINT";
-      case INPUT: return "INPUT";
-      case LET: return "LET";
-      case IF: return "IF";
-      case THEN: return "THEN";
-      case ENDIF: return "ENDIF";
-      case WHILE: return "WHILE";
-      case REPEAT: return "REPEAT";
-      case ENDWHILE: return "ENDWHILE";
-      case EQ: return "EQ";
-      case PLUS: return "PLUS";
-      case MINUS: return "MINUS";
-      case ASTERISK: return "ASTERISK";
-      case SLASH: return "SLASH";
-      case EQEQ: return "EQEQ";
-      case NOTEQ: return "NOTEQ";
-      case LT: return "LT";
-      case LTEQ: return "LTEQ";
-      case GT: return "GT";
-      case GTEQ: return "GTEQ";
-
-      default: std::unreachable();
+      case END_OF_FILE:   return "END_OF_FILE";
+      case NEWLINE:       return "NEWLINE";
+      case NUMBER:        return "NUMBER";
+      case IDENT:         return "IDENT";
+      case STRING:        return "STRING";
+      case PRINT:         return "print";
+      case INPUT:         return "input";
+      case IF:            return "if";
+      case WHILE:         return "while";
+      case EQ:            return "EQ";
+      case PLUS:          return "PLUS";
+      case MINUS:         return "MINUS";
+      case ASTERISK:      return "ASTERISK";
+      case SLASH:         return "SLASH";
+      case EQEQ:          return "EQEQ";
+      case NOTEQ:         return "NOTEQ";
+      case LT:            return "LT";
+      case LTEQ:          return "LTEQ";
+      case GT:            return "GT";
+      case GTEQ:          return "GTEQ";
+      case ADD_INDENT:    return "ADD_INDENT";
+      case REMOVE_INDENT: return "REMOVE_INDENT";
+      case OPEN_PAREN:    return "OPEN_PAREN";
+      case CLOSE_PAREN:   return "CLOSE_PAREN";
+      case COLON:         return "COLON";
    }
+   std::unreachable();
 }
 
 #endif //PYTHON_TRANSPILER_CPP_TOKENTYPE_H
