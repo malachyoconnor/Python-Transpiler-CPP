@@ -25,6 +25,21 @@ void Lexer::NextChar() {
    ++currentPos_;
 }
 
+std::string Lexer::GetCurrentLine() const {
+   int i = currentPos_;
+   while (i > 0 && source_[i] != '\n') {
+      --i;
+   }
+   if (source_[i] == '\n') ++i;
+
+   std::string resultString {};
+   for (; i < source_.size() && source_[i] != '\n'; i++) {
+      resultString += source_[i];
+   }
+
+   return resultString;
+}
+
 char Lexer::GetCurrentChar() const {
    if (currentPos_ >= source_.length()) {
       return '\0';

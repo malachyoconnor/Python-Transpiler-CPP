@@ -10,6 +10,7 @@ public:
 
    // Process the next character.
    void NextChar();
+   std::string GetCurrentLine() const;
 
    [[nodiscard]]
    char Peek() const;

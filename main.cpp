@@ -1,11 +1,13 @@
-#include <cassert>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+
+#include "Emitter.h"
 #include "Lexer.h"
+#include "Parser.h"
 
 int main() {
-   std::ifstream fileStream {"../exampleScripts/fib_program.txt"};
+   std::ifstream fileStream {"../exampleScripts/average.txt"};
 
    if (!fileStream.is_open()) {
       std::printf("ERROR: Could not open file!");
@@ -19,13 +21,12 @@ int main() {
    }
    sourceString += '\0';
 
-
    Lexer lexer {sourceString};
+   Emitter emitter {"../out.c"};
+   Parser parser {lexer, emitter};
 
-   while (!lexer.Finished()) {
-      Token tok = lexer.GetToken();
+   parser.ParseProgram();
+   emitter.WriteFile();
 
-      std::printf("%s(%s)\n", str(tok.GetType()).c_str(), tok.GetText().c_str());
-   }
-
+   printf("Parsing completed!\n");
 }

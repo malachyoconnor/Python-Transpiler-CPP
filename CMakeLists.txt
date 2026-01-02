@@ -10,4 +10,8 @@ add_executable(Python_Transpiler_CPP
         Trie.h
         Trie.cpp
         Token.h
-        TokenType.h)
+        TokenType.h
+        Parser.h
+        Parser.cpp
+        Emitter.h
+        Emitter.cpp)
