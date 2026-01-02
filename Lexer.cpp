@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <ostream>
+#include <utility>
 
 const Trie KEYWORD_TRIE = Trie({
    str(LABEL),
@@ -17,7 +18,7 @@ const Trie KEYWORD_TRIE = Trie({
    str(ENDWHILE)
 });
 
-Lexer::Lexer(std::string &source) : currentPos_(-1), source_(source) {
+Lexer::Lexer(std::string source) : currentPos_(-1), source_(std::move(source)) {
    NextChar();
 }
 

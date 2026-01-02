@@ -100,7 +100,7 @@ void Parser::IfStatement() {
    emitter_.IncrementTabDepth();
    NewLine();
    //  Possible statement
-   while (!CheckToken(ENDWHILE))
+   while (!CheckToken(ENDIF))
       Statement();
 
    ConsumeOrAbort(ENDIF);

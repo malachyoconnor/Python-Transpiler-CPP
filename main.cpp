@@ -7,7 +7,7 @@
 #include "Parser.h"
 
 int main() {
-   std::ifstream fileStream {"../exampleScripts/average.txt"};
+   std::ifstream fileStream {"../exampleScripts/fib_program.txt"};
 
    if (!fileStream.is_open()) {
       std::printf("ERROR: Could not open file!");

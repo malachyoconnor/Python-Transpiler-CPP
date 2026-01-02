@@ -6,10 +6,12 @@
 
 class Lexer {
 public:
-   Lexer(std::string &source);
+   Lexer(std::string source);
 
    // Process the next character.
    void NextChar();
+
+   [[nodiscard]]
    std::string GetCurrentLine() const;
 
    [[nodiscard]]
@@ -28,7 +30,7 @@ private:
    char GetCurrentChar() const;
 
    int currentPos_;
-   std::string source_;
+   const std::string source_;
 };
 
 
