@@ -7,7 +7,7 @@
 #include "Parser.h"
 
 int main() {
-   std::ifstream fileStream {"../exampleScripts/print.txt"};
+   std::ifstream fileStream {"../exampleScripts/fib_program.txt"};
 
    if (!fileStream.is_open()) {
       std::printf("ERROR: Could not open file!");
@@ -22,11 +22,6 @@ int main() {
    sourceString += '\0';
 
    Lexer lexer {sourceString};
-
-    // for (auto token = lexer.GetToken(); token.GetType() != END_OF_FILE; token = lexer.GetToken()) {
-    //    printf("%s(%s)\n", str(token.GetType()).c_str(), token.GetText().c_str());
-    // }
-
    Emitter emitter {"../out.c"};
    Parser parser {lexer, emitter};
 

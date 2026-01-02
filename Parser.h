@@ -66,11 +66,14 @@ private:
    void ConsumeOrAbort(TokenType kind);
    void NextToken();
    void Abort(const std::string &message);
+
    void Statement();
    void PrintStatement();
    void IfStatement();
    void WhileStatement();
+   void StatementBlock();
    void ReassignmentStatement();
+
    void Comparison();
    void Expression();
    void Term();

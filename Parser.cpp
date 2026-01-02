@@ -94,26 +94,7 @@ void Parser::IfStatement() {
    emitter_.Emit("if (");
    Comparison();
    emitter_.Emit(") ");
-   emitter_.Emit("{");
-
-   ConsumeOrAbort(COLON);
-   NewLine();
-   ConsumeOrAbort(ADD_INDENT);
-
-   emitter_.IncrementTabDepth();
-   //  Possible statement
-   while (!CheckToken(REMOVE_INDENT)) {
-      while (CheckToken(NEWLINE)) {
-         ConsumeOrAbort(NEWLINE);
-      }
-      if (CheckToken(REMOVE_INDENT)) break;
-
-      Statement();
-   }
-
-   ConsumeOrAbort(REMOVE_INDENT);
-   emitter_.DecrementTabDepth();
-   emitter_.Emit("}\n");
+   StatementBlock();
 }
 
 void Parser::WhileStatement() {
@@ -121,6 +102,10 @@ void Parser::WhileStatement() {
    emitter_.Emit("while (");
    Comparison();
    emitter_.Emit(") ");
+   StatementBlock();
+}
+
+void Parser::StatementBlock() {
    emitter_.Emit("{");
 
    ConsumeOrAbort(COLON);

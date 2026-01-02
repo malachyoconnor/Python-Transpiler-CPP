@@ -8,66 +8,49 @@ Trie::Trie(const std::vector<std::string> &allWords) : children{}, endOfWord(fal
    }
 }
 
-Trie::~Trie() {
-   for (auto child: children) {
-      delete child;
+void Trie::Insert(const std::string_view word) {
+   if (word.empty()) {
+      endOfWord = true;
+      return;
    }
+   const char lowerCase = static_cast<char>(tolower(word[0])) - 'a';
+
+   if (!(lowerCase >= 0 && lowerCase < 26))
+      throw std::invalid_argument("Invalid character - this trie requires a-z");
+
+   if (children[lowerCase] == nullptr) {
+      children[lowerCase] = std::make_unique<Trie>();
+   }
+   children[lowerCase]->Insert(word.substr(1, word.length() - 1));
 }
 
-void Trie::Insert(const std::string &word) {
-   if (word.empty()) return;
-   Trie *node = this;
-
-   for (const char &c: word) {
-      auto lowerCase = static_cast<char>(tolower(c)) - 'a';
-      if (!(lowerCase >= 0 && lowerCase < 26))
-         throw std::invalid_argument("Invalid character - this trie requires a-z");
-
-      if (node->children[lowerCase] == nullptr) {
-         node->children[lowerCase] = new Trie();
-      }
-      node = node->children[lowerCase];
+bool Trie::Contains(std::string_view word) const {
+   if (word.empty()) {
+      return endOfWord;
    }
+   const char lowerCase = static_cast<char>(tolower(word[0])) - 'a';
 
-   if (!node) return;
-   node->endOfWord = true;
+   if (!(lowerCase >= 0 && lowerCase < 26))
+      throw std::invalid_argument("Invalid character - this trie requires a-z");
+
+   if (children[lowerCase] == nullptr) {
+      return false;
+   }
+   return children[lowerCase]->Contains(word.substr(1, word.length() - 1));
 }
 
-bool Trie::Contains(const std::string &word) const {
-   if (word.empty()) return false;
-   auto node = this;
-
-   for (const char &c: word) {
-      auto lowerCase = static_cast<char>(tolower(c)) - 'a';
-      if (!(lowerCase >= 0 && lowerCase < 26))
-         throw std::invalid_argument("Invalid character - this trie requires a-z");
-
-      if (node->children[lowerCase] == nullptr) {
-         return false;
-      }
-
-      node = node->children[lowerCase];
+bool Trie::StartsWith(std::string_view word) const {
+   if (word.empty()) {
+      return true;
    }
+   const char lowerCase = static_cast<char>(tolower(word[0])) - 'a';
 
-   if (!node) return false;
-   return node->endOfWord;
-}
+   if (!(lowerCase >= 0 && lowerCase < 26))
+      throw std::invalid_argument("Invalid character - this trie requires a-z");
 
-bool Trie::StartsWith(const std::string &word) const {
-   auto *node = this;
-
-   for (const char &c: word) {
-      auto lowerCase = static_cast<char>(tolower(c)) - 'a';
-      if (!(lowerCase >= 0 && lowerCase < 26))
-         throw std::invalid_argument("Invalid character - this trie requires a-z");
-
-      if (node->children[lowerCase] == nullptr) {
-         return false;
-      }
-
-      node = node->children[lowerCase];
+   if (children[lowerCase] == nullptr) {
+      return false;
    }
+   return children[lowerCase]->StartsWith(word.substr(1, word.length() - 1));
 
-   if (!node) return false;
-   return true;
 }

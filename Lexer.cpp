@@ -136,6 +136,7 @@ Token Lexer::GetToken() {
       case '!': {
          if (Peek() == '=') {
             result = Token("!=", NOTEQ);
+            NextChar();
          } else {
             Abort("Expected != but found only !");
          }
@@ -153,6 +154,7 @@ Token Lexer::GetToken() {
       case '>': {
          if (Peek() == '=') {
             result = Token(">=", GTEQ);
+            NextChar();
          } else {
             result = Token(">", GT);
          }
@@ -161,6 +163,7 @@ Token Lexer::GetToken() {
       case '<': {
          if (Peek() == '=') {
             result = Token("<=", LTEQ);
+            NextChar();
          } else {
             result = Token("<", LT);
          }
