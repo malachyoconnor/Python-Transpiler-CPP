@@ -16,17 +16,17 @@ Trie::~Trie() {
 
 void Trie::Insert(const std::string &word) {
    if (word.empty()) return;
-   Trie *node = nullptr;
+   Trie *node = this;
 
    for (const char &c: word) {
       auto lowerCase = static_cast<char>(tolower(c)) - 'a';
       if (!(lowerCase >= 0 && lowerCase < 26))
          throw std::invalid_argument("Invalid character - this trie requires a-z");
 
-      if (children[lowerCase] == nullptr) {
-         children[lowerCase] = new Trie();
+      if (node->children[lowerCase] == nullptr) {
+         node->children[lowerCase] = new Trie();
       }
-      node = children[lowerCase];
+      node = node->children[lowerCase];
    }
 
    if (!node) return;
@@ -34,18 +34,19 @@ void Trie::Insert(const std::string &word) {
 }
 
 bool Trie::Contains(const std::string &word) const {
-   Trie *node = nullptr;
+   if (word.empty()) return false;
+   auto node = this;
 
    for (const char &c: word) {
       auto lowerCase = static_cast<char>(tolower(c)) - 'a';
       if (!(lowerCase >= 0 && lowerCase < 26))
          throw std::invalid_argument("Invalid character - this trie requires a-z");
 
-      if (children[lowerCase] == nullptr) {
+      if (node->children[lowerCase] == nullptr) {
          return false;
       }
 
-      node = children[lowerCase];
+      node = node->children[lowerCase];
    }
 
    if (!node) return false;
@@ -53,18 +54,18 @@ bool Trie::Contains(const std::string &word) const {
 }
 
 bool Trie::StartsWith(const std::string &word) const {
-   Trie *node = nullptr;
+   auto *node = this;
 
    for (const char &c: word) {
       auto lowerCase = static_cast<char>(tolower(c)) - 'a';
       if (!(lowerCase >= 0 && lowerCase < 26))
          throw std::invalid_argument("Invalid character - this trie requires a-z");
 
-      if (children[lowerCase] == nullptr) {
+      if (node->children[lowerCase] == nullptr) {
          return false;
       }
 
-      node = children[lowerCase];
+      node = node->children[lowerCase];
    }
 
    if (!node) return false;

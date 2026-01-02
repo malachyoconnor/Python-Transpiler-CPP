@@ -10,23 +10,24 @@ public:
 
    // Process the next character.
    void NextChar();
-   char Peek();
 
+   [[nodiscard]]
+   char Peek() const;
+
+   Token GetToken();
+   bool Finished();
+
+private:
    // Invalid token found, print error message and exit.
    void Abort(std::string msg);
-
-   // Skip whitespace except newlines, which we will use to indicate the end of a statement.
    void SkipWhitespace();
    void SkipComment();
 
-   Token GetToken();
-
-private:
-   char GetCurrentChar();
+   [[nodiscard]]
+   char GetCurrentChar() const;
 
    int currentPos_;
    std::string source_;
-   Trie keyWordTrie_;
 };
 
 
