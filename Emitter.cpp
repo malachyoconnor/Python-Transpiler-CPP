@@ -5,6 +5,12 @@ void Emitter::NewLine() {
    code_ += '\n';
 }
 
+std::string Emitter::ReadAndClearBuffer() {
+   std::string current = code_;
+   code_ = "";
+   return current;
+}
+
 void Emitter::Emit(const std::string &code) {
    if (!code_.empty() && code_.back() == '\n') {
       for (int i = 0; i < tabDepth_; ++i) code_ += "   ";

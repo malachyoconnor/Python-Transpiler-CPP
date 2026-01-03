@@ -19,7 +19,7 @@ class Emitter;
          | "for" IDENT IN rangeBlock statementBlock
          | IDENT "=" (expression | input()) nl
          | "INPUT" OPEN_PAREN ident CLOSE_PARENT nl
-     rangeBlock ::= RANGE OPEN_PAREN ( [(expression | IDENT) COMMA (expression | IDENT)] | [expression | IDENT] ) CLOSE_PAREN
+     rangeBlock ::= RANGE OPEN_PAREN ( [expression COMMA expression] | [expression] ) CLOSE_PAREN
      statementBlock ::= ADD_INDENT {statement} {nl} REMOVE_INDENT
      comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
      expression ::= term {( "-" | "+" ) term}
@@ -75,6 +75,7 @@ private:
    void IfStatement();
    void WhileStatement();
    void ForStatement();
+   void RangeBlock(std::string& variableName);
    void StatementBlock();
    void ReassignmentStatement();
 

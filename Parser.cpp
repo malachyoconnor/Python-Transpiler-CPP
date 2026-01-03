@@ -115,7 +115,9 @@ void Parser::ForStatement() {
    std::string loopVariableName = GetCurrentToken().GetText();
    ConsumeOrAbort(IDENT);
 
-   if (!symbols_.contains(loopVariableName)) {
+   const bool newTemporaryLoopVariable = !symbols_.contains(loopVariableName);
+
+   if (newTemporaryLoopVariable) {
       emitter_.Emit(std::format("for (float {} = ", loopVariableName));
       symbols_.insert(loopVariableName);
    } else {
@@ -123,33 +125,37 @@ void Parser::ForStatement() {
    }
 
    ConsumeOrAbort(IN);
+   RangeBlock(loopVariableName);
+   StatementBlock();
+
+   if (newTemporaryLoopVariable) {
+      symbols_.erase(loopVariableName);
+   }
+}
+
+void Parser::RangeBlock(std::string &variableName) {
    ConsumeOrAbort(RANGE);
    ConsumeOrAbort(OPEN_PAREN);
 
-   if (CheckToken(IDENT)) {
-      emitter_.Emit(GetCurrentToken().GetText());
-      ConsumeOrAbort(IDENT);
-   } else {
+   std::string originalBuffer = emitter_.ReadAndClearBuffer();
+
+   Expression();
+
+   std::string expressionCode = emitter_.ReadAndClearBuffer();
+   emitter_.Emit(originalBuffer);
+   // for i in range(10):
+   // for i in range(0, 10):
+
+   if (CheckToken(COMMA)) {
+     ConsumeOrAbort(COMMA);
+      emitter_.Emit(std::format("{}; {} < ", expressionCode, variableName));
       Expression();
-   }
-   emitter_.Emit("; ");
-
-   ConsumeOrAbort(COMMA);
-
-   emitter_.Emit(std::format("{} < ", loopVariableName));
-
-   if (CheckToken(IDENT)) {
-      emitter_.Emit(GetCurrentToken().GetText());
-      ConsumeOrAbort(IDENT);
+      emitter_.Emit(std::format("; ++{})", variableName));
    } else {
-      Expression();
+      emitter_.Emit(std::format("0; {} < {}; ++{})", variableName, expressionCode, variableName));
    }
-
-   emitter_.Emit("; ");
-   emitter_.Emit(std::format("++{})", loopVariableName));
 
    ConsumeOrAbort(CLOSE_PAREN);
-   StatementBlock();
 }
 
 void Parser::StatementBlock() {

@@ -9,6 +9,7 @@ public:
    Emitter(std::filesystem::path pathToOutputFile) : pathToOutputFile_(std::move(pathToOutputFile)), tabDepth_(0) {}
 
    void NewLine();
+   std::string ReadAndClearBuffer();
    void Emit(const std::string& code);
    void IncrementTabDepth();
    void DecrementTabDepth();
