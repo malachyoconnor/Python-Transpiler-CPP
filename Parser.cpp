@@ -58,15 +58,16 @@ void Parser::Abort(const std::string &message) {
 }
 
 void Parser::Statement() {
-   if (!CheckTokenInList({PRINT, IF, WHILE, IDENT, INPUT}))
+   if (!CheckTokenInList({PRINT, IF, WHILE, IDENT, INPUT, FOR}))
       Abort(std::format("Expected a statement keyword, but found: {} ({})",
          GetCurrentToken().GetText(), str(GetCurrentToken().GetType())));
 
    switch (GetCurrentToken().GetType()) {
-      case PRINT:  PrintStatement(); break;
-      case IF:     IfStatement(); break;
-      case WHILE:  WhileStatement(); break;
+      case PRINT:  PrintStatement();        break;
+      case IF:     IfStatement();           break;
+      case WHILE:  WhileStatement();        break;
       case IDENT:  ReassignmentStatement(); break;
+      case FOR:    ForStatement();          break;
       default: std::unreachable();
    }
 }
@@ -102,6 +103,52 @@ void Parser::WhileStatement() {
    emitter_.Emit("while (");
    Comparison();
    emitter_.Emit(") ");
+   StatementBlock();
+}
+
+void Parser::ForStatement() {
+   ConsumeOrAbort(FOR);
+   if (!CheckToken(IDENT)) {
+      Abort(std::format("Expected ident in for loop, but found {}", GetCurrentToken().GetText()));
+   }
+
+   std::string loopVariableName = GetCurrentToken().GetText();
+   ConsumeOrAbort(IDENT);
+
+   if (!symbols_.contains(loopVariableName)) {
+      emitter_.Emit(std::format("for (float {} = ", loopVariableName));
+      symbols_.insert(loopVariableName);
+   } else {
+      emitter_.Emit(std::format("for ({} = ", loopVariableName));
+   }
+
+   ConsumeOrAbort(IN);
+   ConsumeOrAbort(RANGE);
+   ConsumeOrAbort(OPEN_PAREN);
+
+   if (CheckToken(IDENT)) {
+      emitter_.Emit(GetCurrentToken().GetText());
+      ConsumeOrAbort(IDENT);
+   } else {
+      Expression();
+   }
+   emitter_.Emit("; ");
+
+   ConsumeOrAbort(COMMA);
+
+   emitter_.Emit(std::format("{} < ", loopVariableName));
+
+   if (CheckToken(IDENT)) {
+      emitter_.Emit(GetCurrentToken().GetText());
+      ConsumeOrAbort(IDENT);
+   } else {
+      Expression();
+   }
+
+   emitter_.Emit("; ");
+   emitter_.Emit(std::format("++{})", loopVariableName));
+
+   ConsumeOrAbort(CLOSE_PAREN);
    StatementBlock();
 }
 

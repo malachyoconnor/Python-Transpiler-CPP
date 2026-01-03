@@ -15,9 +15,12 @@ class Emitter;
      program ::= {statement}
      statement ::= "print" OPEN_PAREN (expression | string) CLOSE_PAREN nl
          | "if" comparison COLON nl ADD_INDENT {statement | nl} REMOVE_INDENT
-         | "while" comparison COLON nl ADD_INDENT {statement} {nl} REMOVE_INDENT
+         | "while" comparison COLON nl statementBlock
+         | "for" IDENT IN rangeBlock statementBlock
          | IDENT "=" (expression | input()) nl
          | "INPUT" OPEN_PAREN ident CLOSE_PARENT nl
+     rangeBlock ::= RANGE OPEN_PAREN ( [(expression | IDENT) COMMA (expression | IDENT)] | [expression | IDENT] ) CLOSE_PAREN
+     statementBlock ::= ADD_INDENT {statement} {nl} REMOVE_INDENT
      comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
      expression ::= term {( "-" | "+" ) term}
      term ::= unary {( "/" | "*" ) unary}
@@ -71,6 +74,7 @@ private:
    void PrintStatement();
    void IfStatement();
    void WhileStatement();
+   void ForStatement();
    void StatementBlock();
    void ReassignmentStatement();
 

@@ -9,6 +9,9 @@ const Trie KEYWORD_TRIE = Trie({
    str(INPUT),
    str(IF),
    str(WHILE),
+   str(FOR),
+   str(IN),
+   str(RANGE),
 });
 
 Lexer::Lexer(std::string source) : currentPos_(-1), currentIndentation_(0), source_(std::move(source)) {
@@ -133,6 +136,7 @@ Token Lexer::GetToken() {
       case '(':  result = Token("(", OPEN_PAREN);   break;
       case ')':  result = Token("(", CLOSE_PAREN);  break;
       case ':':  result = Token(":", COLON);        break;
+      case ',':  result = Token(",", COMMA);        break;
       case '!': {
          if (Peek() == '=') {
             result = Token("!=", NOTEQ);
@@ -205,11 +209,7 @@ Token Lexer::GetToken() {
 
             if (KEYWORD_TRIE.Contains(source_.substr(startIndex, currentPos_ - startIndex))) {
                std::string keyword = source_.substr(startIndex, currentPos_ - startIndex);
-               if (keyword == str(PRINT))    return Token("PRINT", PRINT);
-               if (keyword == str(INPUT))    return Token("INPUT", INPUT);
-               if (keyword == str(IF))       return Token("IF", IF);
-               if (keyword == str(WHILE))    return Token("WHILE", WHILE);
-               Abort(std::format("Unknown keyword: {}", keyword));
+               return Token(keyword, fromStr(keyword));
             }
 
             while (IsAlpha(GetCurrentChar())) {
